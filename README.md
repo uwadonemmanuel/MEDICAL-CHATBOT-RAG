@@ -246,7 +246,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-[Add your license here]
+This project is part of the Andela GenAI program.
 
 ## 🙏 Acknowledgments
 
