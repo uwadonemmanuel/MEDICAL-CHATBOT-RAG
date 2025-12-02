@@ -6,7 +6,7 @@
 2. [Jenkins Setup for Deployment](#1--jenkins-setup-for-deployment)
 3. [Jenkins Integration with GitHub](#2--jenkins-integration-with-github)
 4. [Build Docker Image, Scan with Trivy, and Push to AWS ECR](#3--build-docker-image-scan-with-trivy-and-push-to-aws-ecr)
-5. [Deployment to AWS App Runner](#4--deployment-to-aws-app-runner)
+5. [Deployment to AWS Fargate](#4--deployment-to-aws-fargate)
 
 ---
 
@@ -115,9 +115,7 @@ docker-compose up -d
 
 **Access Jenkins at:** http://localhost:8081
 
-### Option 3: Manual Docker Run (Separate Instance)
-
-If you want to run alongside an existing Jenkins instance:
+### Option 3: Manual Docker Run
 
 **macOS/Linux:**
 ```bash
@@ -149,61 +147,27 @@ docker run -d `
 
 > ✅ If successful, you'll get a long alphanumeric container ID
 
-### Option 4: Replace Existing Jenkins (Use Original Ports)
-
-If you want to replace an existing Jenkins container and use ports 8080/50000:
-
-```bash
-# Stop and remove existing container
-docker stop jenkins-dind
-docker rm jenkins-dind
-
-# Build and run
-cd custom_jenkins
-docker build -t jenkins-dind .
-docker run -d \
-  --name jenkins-dind \
-  --privileged \
-  -p 8080:8080 \
-  -p 50000:50000 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v jenkins_home:/var/jenkins_home \
-  jenkins-dind
-```
-
-**Access Jenkins at:** http://localhost:8080
-
 ### 4. Check Jenkins Logs and Get Initial Password
 
 ```bash
-# For separate instance
 docker ps
 docker logs jenkins-dind-rag-medical
-
-# For replaced instance
-docker logs jenkins-dind
 ```
 
 If the password isn't visible, run:
 
 ```bash
-# For separate instance
 docker exec jenkins-dind-rag-medical cat /var/jenkins_home/secrets/initialAdminPassword
-
-# For replaced instance
-docker exec jenkins-dind cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
 ### 5. Access Jenkins Dashboard
 
-- **Separate instance:** Open your browser and go to: [http://localhost:8081](http://localhost:8081)
-- **Replaced instance:** Open your browser and go to: [http://localhost:8080](http://localhost:8080)
+Open your browser and go to: [http://localhost:8081](http://localhost:8081)
 
 ### 6. Install Python Inside Jenkins Container
 
 Back in the terminal:
 
-**For separate instance:**
 ```bash
 docker exec -u root -it jenkins-dind-rag-medical bash
 apt update -y
@@ -215,34 +179,15 @@ apt install -y python3-pip
 exit
 ```
 
-**For replaced instance:**
-```bash
-docker exec -u root -it jenkins-dind bash
-apt update -y
-apt install -y python3
-python3 --version
-ln -s /usr/bin/python3 /usr/bin/python
-python --version
-apt install -y python3-pip
-exit
-```
-
 ### 7. Restart Jenkins Container
 
-**For separate instance:**
 ```bash
 docker restart jenkins-dind-rag-medical
 ```
 
-**For replaced instance:**
-```bash
-docker restart jenkins-dind
-```
-
 ### 8. Go to Jenkins Dashboard and Sign In Again
 
-- **Separate instance:** http://localhost:8081
-- **Replaced instance:** http://localhost:8080
+Open: http://localhost:8081
 
 ## ==> 2. 🔗 Jenkins Integration with GitHub
 
@@ -332,7 +277,6 @@ git push origin main
 
 ### 1. Install Trivy in Jenkins Container
 
-**For separate instance:**
 ```bash
 docker exec -u root -it jenkins-dind-rag-medical bash
 apt update -y
@@ -342,26 +286,10 @@ trivy --version
 exit
 ```
 
-**For replaced instance:**
-```bash
-docker exec -u root -it jenkins-dind bash
-apt update -y
-curl -LO https://github.com/aquasecurity/trivy/releases/download/v0.62.1/trivy_0.62.1_Linux-64bit.deb
-dpkg -i trivy_0.62.1_Linux-64bit.deb
-trivy --version
-exit
-```
-
 Then restart the container:
 
-**For separate instance:**
 ```bash
 docker restart jenkins-dind-rag-medical
-```
-
-**For replaced instance:**
-```bash
-docker restart jenkins-dind
 ```
 
 ---
@@ -374,14 +302,8 @@ docker restart jenkins-dind
   - **AWS Credentials**
 - Restart the Jenkins container:
 
-**For separate instance:**
 ```bash
 docker restart jenkins-dind-rag-medical
-```
-
-**For replaced instance:**
-```bash
-docker restart jenkins-dind
 ```
 
 ---
@@ -481,21 +403,8 @@ You'll use these credentials in the next step when adding AWS credentials to Jen
 
 ### 5. Install AWS CLI Inside Jenkins Container
 
-**For separate instance:**
 ```bash
 docker exec -u root -it jenkins-dind-rag-medical bash
-apt update
-apt install -y unzip curl
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-./aws/install
-aws --version
-exit
-```
-
-**For replaced instance:**
-```bash
-docker exec -u root -it jenkins-dind bash
 apt update
 apt install -y unzip curl
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -528,18 +437,8 @@ If you encounter Docker socket permission issues (error: `permission denied whil
 
 #### Step 1: Check Current Docker Socket Permissions
 
-**For separate instance:**
 ```bash
 docker exec -u root -it jenkins-dind-rag-medical bash
-ls -la /var/run/docker.sock
-getent group docker
-groups jenkins
-exit
-```
-
-**For replaced instance:**
-```bash
-docker exec -u root -it jenkins-dind bash
 ls -la /var/run/docker.sock
 getent group docker
 groups jenkins
@@ -548,31 +447,8 @@ exit
 
 #### Step 2: Fix Docker Socket Permissions
 
-**For separate instance:**
 ```bash
 docker exec -u root -it jenkins-dind-rag-medical bash
-# Ensure docker group exists
-groupadd -f docker
-
-# Add Jenkins user to docker group
-usermod -aG docker jenkins
-
-# Fix socket permissions (if mounted from host)
-chown root:docker /var/run/docker.sock
-chmod 660 /var/run/docker.sock
-
-# Verify Jenkins is in docker group
-groups jenkins
-
-# Test Docker access as Jenkins user
-su - jenkins -c "docker ps"
-
-exit
-```
-
-**For replaced instance:**
-```bash
-docker exec -u root -it jenkins-dind bash
 # Ensure docker group exists
 groupadd -f docker
 
@@ -594,14 +470,8 @@ exit
 
 #### Step 3: Restart Jenkins Container
 
-**For separate instance:**
 ```bash
 docker restart jenkins-dind-rag-medical
-```
-
-**For replaced instance:**
-```bash
-docker restart jenkins-dind
 ```
 
 #### Step 4: Verify Docker Access from Jenkins Pipeline
@@ -662,7 +532,7 @@ If this succeeds, Docker permissions are fixed!
 
 > **Note:** The Dockerfile already includes Docker installation and adds the Jenkins user to the docker group. However, if you're mounting the Docker socket from the host (`-v /var/run/docker.sock:/var/run/docker.sock`), you may need to fix permissions as shown above.
 
-## ==> 4. 🚀 Deployment to AWS Elastic Beanstalk
+## ==> 4. 🚀 Deployment to AWS Fargate
 
 ### ✅ Prerequisites
 
@@ -672,239 +542,243 @@ If this succeeds, Docker permissions are fixed!
 ### 🔐 IAM User Permissions
 
 - Go to **AWS Console** → **IAM** → Select your Jenkins user
-- Attach the policy: `AWSElasticBeanstalkFullAccess`
-- Also ensure these policies are attached:
+- Attach the following policies:
   - `AmazonEC2ContainerRegistryFullAccess` (already done)
-  - `AmazonEC2FullAccess` (for EC2 instances created by Beanstalk)
+  - `AmazonECS_FullAccess` (for ECS and Fargate)
+  - `AmazonEC2FullAccess` (for VPC and networking resources)
+  - `IAMFullAccess` (for creating task execution roles, or create custom policy with minimal permissions)
 
 ---
 
-### 🌐 Setup AWS Elastic Beanstalk (Manual Step)
+### 🌐 Setup AWS Fargate (Manual Step)
 
-Follow these detailed steps to deploy your RAG Medical Chatbot to AWS Elastic Beanstalk:
+Follow these detailed steps to deploy your RAG Medical Chatbot to AWS Fargate:
 
 #### Prerequisites
 
 Before starting, ensure you have:
 - ✅ Docker image pushed to ECR (completed in previous steps)
 - ✅ ECR repository URI (e.g., `844810703328.dkr.ecr.eu-north-1.amazonaws.com/rag-medical-repo`)
-- ✅ IAM user with `AWSElasticBeanstalkFullAccess` and `AmazonEC2FullAccess` policies attached
+- ✅ IAM user with `AmazonECS_FullAccess` and `AmazonEC2FullAccess` policies attached
 - ✅ Environment variables ready (GROQ_API_KEY, HF_TOKEN)
 
-#### Step 1: Navigate to AWS Elastic Beanstalk
+#### Step 1: Navigate to AWS ECS
 
 1. Log in to your **AWS Console** at [https://console.aws.amazon.com](https://console.aws.amazon.com)
-2. In the search bar at the top, type **"Elastic Beanstalk"** and click on **Elastic Beanstalk**
-3. You'll see the Elastic Beanstalk dashboard
-4. Click the **"Create application"** button (usually a blue button)
+2. In the search bar at the top, type **"ECS"** and click on **Elastic Container Service**
+3. You'll see the ECS dashboard
+4. Click **"Clusters"** in the left sidebar
 
-#### Step 2: Create Application
+#### Step 2: Create ECS Cluster
 
-1. **Application name:**
-   - Enter: `rag-medical-chatbot` (or your preferred name)
+1. Click **"Create Cluster"** button
+2. **Cluster name:**
+   - Enter: `rag-medical-chatbot-cluster` (or your preferred name)
    - Must be unique within your AWS account
    - Use lowercase letters, numbers, and hyphens only
 
-2. **Application tags** (optional):
+3. **Infrastructure:**
+   - Select **"AWS Fargate (serverless)"**
+   - This option provides serverless compute (no EC2 instances to manage)
+
+4. **Tags** (optional):
    - Add tags for organization (e.g., `Project: RAG-Medical-Chatbot`)
 
-3. Click **"Create"**
+5. Click **"Create"**
 
-#### Step 3: Create Environment
+6. **Wait for cluster creation:**
+   - This takes 1-2 minutes
+   - Status will change to "Active"
 
-1. After application is created, click **"Create environment"** button
-2. Select **"Web server environment"** (default)
-3. Click **"Select"**
+#### Step 3: Create Task Definition
 
-#### Step 4: Configure Environment
+1. In the ECS dashboard, click **"Task definitions"** in the left sidebar
+2. Click **"Create new task definition"**
+3. **Task definition family:**
+   - Enter: `rag-medical-chatbot-task` (or your preferred name)
 
-1. **Environment name:**
-   - Enter: `rag-medical-chatbot-prod` (or your preferred name)
-   - Must be unique within the application
+4. **Launch type:**
+   - Select **"Fargate"**
 
-2. **Domain:**
-   - Elastic Beanstalk will auto-generate a domain
-   - Format: `<env-name>.<region>.elasticbeanstalk.com`
+5. **Task size:**
+   - **CPU:** `0.5 vCPU` (for testing) or `1 vCPU` (recommended for production)
+   - **Memory:** `1 GB` (for testing) or `2 GB` (recommended for production)
 
-3. **Platform:**
-   - Select **"Docker"**
-   - Platform branch: **"Docker running on 64bit Amazon Linux 2"** (latest)
-   - Platform version: Leave as **"Latest"**
+6. **Task execution role:**
+   - Select **"Create new role"** (AWS will create `ecsTaskExecutionRole`)
+   - Or select existing role if you have one with ECR permissions
 
-4. **Application code:**
-   - Select **"Sample application"** for now (we'll configure ECR image later)
-   - Or upload `Dockerrun.aws.json` file (see Step 11)
+7. **Task role:**
+   - Select **"None"** (unless your app needs AWS service access)
 
-5. **Preset:**
-   - **"Single instance (free tier eligible)"** for testing
-   - **"High availability"** for production (recommended)
+8. **Container definitions:**
+   - Click **"Add container"**
+   - **Container name:** `rag-medical-chatbot`
+   - **Image URI:** Enter your ECR image URI:
+     - Format: `<account-id>.dkr.ecr.<region>.amazonaws.com/rag-medical-repo:latest`
+     - Example: `844810703328.dkr.ecr.eu-north-1.amazonaws.com/rag-medical-repo:latest`
+   - **Port mappings:**
+     - **Container port:** `5000`
+     - **Protocol:** `TCP`
+   - **Environment variables:**
+     - Click **"Add environment variable"**
+     - Add:
+       - **Name:** `GROQ_API_KEY`, **Value:** Your Groq API key
+       - **Name:** `HF_TOKEN`, **Value:** Your HuggingFace token (optional)
+       - **Name:** `PYTHONUNBUFFERED`, **Value:** `1`
+   - **Logging:**
+     - **Log driver:** `awslogs`
+     - **Log group:** Create new or select existing (e.g., `/ecs/rag-medical-chatbot`)
+     - **Log stream prefix:** `ecs`
+   - Click **"Add"**
 
-6. Click **"Review and launch"** or continue with advanced settings
+9. Click **"Create"**
 
-#### Step 5: Configure Instance and Scaling
+#### Step 4: Create Service
 
-1. **Instance type:**
-   - **t3.micro** - Free tier eligible, good for testing
-   - **t3.small** - Recommended for production
-   - **t3.medium** - For higher traffic
+1. Go back to your cluster (`rag-medical-chatbot-cluster`)
+2. Click on the cluster name
+3. Click **"Create"** button (or go to **"Services"** tab → **"Create"**)
 
-2. **Scaling:**
-   - **Min instances:** 1
-   - **Max instances:** 5-10 (based on expected traffic)
-   - **Scaling trigger:** CPU utilization > 70% (default)
+4. **Service configuration:**
+   - **Launch type:** `Fargate`
+   - **Task definition:**
+     - **Family:** Select `rag-medical-chatbot-task`
+     - **Revision:** Select `1` (latest)
+   - **Service name:** `rag-medical-chatbot-service`
+   - **Number of tasks:** `1` (for testing) or `2` (for high availability)
 
-3. **Service role:**
-   - Select **"Create and use new service role"** (recommended)
-   - AWS will create the role automatically
+5. **Networking:**
+   - **VPC:** Select your default VPC or create a new one
+   - **Subnets:** Select at least 2 subnets (for high availability)
+   - **Security groups:** 
+     - Select existing or create new
+     - Must allow inbound traffic on port `5000` (or port you configure in load balancer)
+   - **Auto-assign public IP:** `ENABLED` (required for Fargate tasks to pull images from ECR)
 
-4. **EC2 instance profile:**
-   - Select **"Create and use new instance profile"** (recommended)
-   - This allows EC2 instances to access ECR
+6. **Load balancing (optional but recommended):**
+   - **Load balancer type:** `Application Load Balancer` (recommended)
+   - **Load balancer name:** Create new or select existing
+   - **Container to load balance:**
+     - **Container name:** `rag-medical-chatbot`
+     - **Container port:** `5000`
+   - **Listener:**
+     - **Protocol:** `HTTP`
+     - **Port:** `80`
+   - **Target group:**
+     - **Target group name:** `rag-medical-chatbot-tg`
+     - **Health check path:** `/` (root path)
+     - **Health check interval:** `30 seconds`
+     - **Health check timeout:** `5 seconds`
+     - **Healthy threshold:** `2`
+     - **Unhealthy threshold:** `3`
 
-#### Step 6: Configure Health Check and Monitoring
+7. **Service auto-scaling (optional):**
+   - **Auto Scaling:** Enable if desired
+   - **Min tasks:** `1`
+   - **Max tasks:** `5-10` (based on expected traffic)
+   - **Target CPU utilization:** `70%`
 
-1. **Health check:**
-   - **Health check URL:** `/` (root path)
-   - **Health check grace period:** 300 seconds (5 minutes)
+8. Click **"Create"**
 
-2. **Monitoring:**
-   - **Health check:** **"Enhanced"** (recommended)
-   - **Logs:** Enable **"Instance log streaming to CloudWatch Logs"**
+9. **Wait for service creation:**
+   - This takes 3-5 minutes
+   - Watch the service events for progress
+   - Status will change to "Running" when tasks are healthy
 
-3. Click **"Review and launch"**
+#### Step 5: Access Your Application
 
-#### Step 7: Review and Launch
+1. Once service is running, find your application URL:
+   - Go to **"Load balancers"** in EC2 console (or from ECS service details)
+   - Click on your load balancer
+   - Copy the **DNS name** (e.g., `rag-medical-chatbot-1234567890.us-east-1.elb.amazonaws.com`)
+   - Format: `http://<dns-name>`
 
-1. **Review all settings:**
-   - Application name
-   - Environment name
-   - Platform: Docker
-   - Instance type
-   - Scaling configuration
+2. **If no load balancer:**
+   - Get the public IP of your task:
+     - Go to ECS → Clusters → Your cluster → Tasks tab
+     - Click on the running task
+     - Find **"Public IP"** in the network section
+   - Access: `http://<public-ip>:5000`
 
-2. Click **"Create environment"**
-
-3. **Wait for environment creation:**
-   - This takes 5-10 minutes
-   - Watch the events log for progress
-   - Status will change from "Launching" to "Up"
-
-#### Step 8: Configure Environment Variables
-
-1. Once environment is **"Up"**, go to **"Configuration"** tab
-2. Click **"Edit"** on **"Software"** configuration
-3. Scroll to **"Environment properties"**
-4. Add environment variables:
-
-   **Variable 1:**
-   - **Name:** `GROQ_API_KEY`
-   - **Value:** Your Groq API key
-   
-   **Variable 2:**
-   - **Name:** `HF_TOKEN`
-   - **Value:** Your HuggingFace token (optional)
-   
-   **Variable 3:**
-   - **Name:** `PYTHONUNBUFFERED`
-   - **Value:** `1`
-
-5. Click **"Apply"**
-
-#### Step 9: Configure ECR Image Deployment
-
-**Option A: Using Docker Configuration (Recommended)**
-
-1. Go to **"Configuration"** → **"Docker"**
-2. Click **"Edit"**
-3. **Docker image:** Enter your ECR image URI:
-   - Format: `<account-id>.dkr.ecr.<region>.amazonaws.com/rag-medical-repo:latest`
-   - Example: `844810703328.dkr.ecr.eu-north-1.amazonaws.com/rag-medical-repo:latest`
-4. **Port:** `5000`
-5. Click **"Apply"**
-
-**Option B: Using Dockerrun.aws.json**
-
-1. Create `Dockerrun.aws.json` file in your project root (see detailed guide in `AWS_ELASTIC_BEANSTALK_SETUP.md`)
-2. Commit and push to GitHub
-3. In Elastic Beanstalk, go to **"Upload and deploy"**
-4. Upload the file or deploy from GitHub
-
-#### Step 10: Access Your Application
-
-1. Once deployment is complete, find your application URL:
-   - Go to environment dashboard
-   - Look for **"Domain"** or **"CNAME"**
-   - Format: `http://rag-medical-chatbot-prod.<region>.elasticbeanstalk.com`
-
-2. **Test your application:**
+3. **Test your application:**
    - Open the URL in your browser
    - You should see your RAG Medical Chatbot interface
    - Try asking a medical question to verify it's working
 
-3. **Note:** Elastic Beanstalk uses HTTP by default
-   - For HTTPS, configure SSL certificate (optional, see Step 11)
+#### Step 6: Enable HTTPS (Optional but Recommended)
 
-#### Step 11: Enable HTTPS (Optional but Recommended)
-
-1. Go to **"Configuration"** → **"Load balancer"**
-2. Click **"Edit"**
-3. Under **"Listeners"**, add HTTPS listener:
-   - **Port:** 443
-   - **Protocol:** HTTPS
-   - **SSL certificate:** Request or upload a certificate
-4. Click **"Apply"**
+1. Go to **EC2 Console** → **Load Balancers**
+2. Select your load balancer
+3. Click **"Listeners"** tab → **"Add listener"**
+4. Configure:
+   - **Protocol:** `HTTPS`
+   - **Port:** `443`
+   - **Default action:** Forward to your target group
+   - **SSL certificate:** Request or upload a certificate from ACM (AWS Certificate Manager)
+5. Click **"Save"**
 
 #### Troubleshooting
 
-**Environment won't start:**
-- Check **"Events"** tab for error messages
-- Check **"Logs"** → **"Last 100 Lines"**
-- Verify Docker image URI is correct
+**Service won't start:**
+- Check **"Events"** tab in service details for error messages
+- Check CloudWatch Logs for container logs
+- Verify task definition image URI is correct
 - Check environment variables are set
+- Verify security groups allow traffic
 
-**Health check failing:**
-- Ensure Flask responds on `/` path
-- Check application logs
-- Verify port 5000 is configured
-- Check security groups allow traffic
+**Tasks keep stopping:**
+- Check CloudWatch Logs for application errors
+- Verify health check path is correct (`/`)
+- Check task definition resource limits (CPU/memory)
+- Ensure ECR image is accessible (check IAM permissions)
 
 **Can't access application:**
-- Wait for environment status: "Up"
-- Check application URL
-- Verify security groups (port 80/443)
-- Check load balancer health (if using)
+- Wait for service status: "Running" and tasks: "Healthy"
+- Check load balancer DNS name or task public IP
+- Verify security groups allow inbound traffic (port 80/443 or 5000)
+- Check target group health status
 
-**Docker image pull errors:**
+**Image pull errors:**
 - Verify ECR image URI is correct
-- Check IAM role has ECR permissions
+- Check task execution role has ECR permissions
 - Ensure image tag exists in ECR
 - Check region matches
+- Verify VPC has internet gateway (for public IP)
+
+**High costs:**
+- Use appropriate task size (start with 0.5 vCPU, 1 GB)
+- Set up auto-scaling to scale down during low traffic
+- Use CloudWatch to monitor costs
+- Consider using Spot Fargate (if available in your region)
 
 #### Cost Optimization Tips
 
-1. **Use appropriate instance size:**
-   - Start with **t3.micro** (free tier eligible) for testing
-   - Scale to **t3.small** for production
+1. **Use appropriate task size:**
+   - Start with **0.5 vCPU, 1 GB** for testing
+   - Scale to **1 vCPU, 2 GB** for production
+   - Monitor CloudWatch metrics to optimize
 
-2. **Monitor usage:**
-   - Use CloudWatch to track metrics
-   - Adjust auto-scaling based on actual traffic
+2. **Configure auto-scaling:**
+   - Set minimum tasks to `1` during low traffic
+   - Scale up based on CPU/memory utilization
+   - Use scheduled scaling for predictable traffic patterns
 
-3. **Use single instance** for development:
-   - Cheaper than load-balanced setup
-   - Upgrade to load-balanced for production
+3. **Monitor usage:**
+   - Use CloudWatch to track task count and resource utilization
+   - Set up billing alerts
+   - Review and optimize task definitions regularly
 
 #### Next Steps
 
-After Elastic Beanstalk is running:
+After Fargate service is running:
 1. ✅ Test your chatbot at the provided URL
-2. ✅ Configure Jenkinsfile for Elastic Beanstalk deployment (see below)
-3. ✅ Set up CloudWatch monitoring
+2. ✅ Configure Jenkinsfile for Fargate deployment (see below)
+3. ✅ Set up CloudWatch monitoring and alarms
 4. ✅ Configure auto-scaling based on traffic
+5. ✅ Set up HTTPS with ACM certificate
 
-Your RAG Medical Chatbot is now live on AWS Elastic Beanstalk! 🚀
-
-> 📖 **For detailed step-by-step instructions, see `AWS_ELASTIC_BEANSTALK_SETUP.md`**
+Your RAG Medical Chatbot is now live on AWS Fargate! 🚀
 
 ---
 
@@ -913,9 +787,9 @@ Your RAG Medical Chatbot is now live on AWS Elastic Beanstalk! 🚀
 - Go to **Jenkins Dashboard** → Select your pipeline job
 - Click **Build Now**
 
-If all stages succeed (Checkout → Build → Trivy Scan → Push to ECR → Deploy to Elastic Beanstalk):
+If all stages succeed (Checkout → Build → Trivy Scan → Push to ECR → Deploy to Fargate):
 
-🎉 **CI/CD Deployment to AWS Elastic Beanstalk is complete!**
+🎉 **CI/CD Deployment to AWS Fargate is complete!**
 
 ✅ Your app is now live and running on AWS 🚀
 
@@ -937,57 +811,35 @@ docker ps -a
 
 **Stop Jenkins container:**
 ```bash
-# Separate instance
 docker stop jenkins-dind-rag-medical
-
-# Replaced instance
-docker stop jenkins-dind
 ```
 
 **Start Jenkins container:**
 ```bash
-# Separate instance
 docker start jenkins-dind-rag-medical
-
-# Replaced instance
-docker start jenkins-dind
 ```
 
 **View logs:**
 ```bash
-# Separate instance
 docker logs -f jenkins-dind-rag-medical
-
-# Replaced instance
-docker logs -f jenkins-dind
 ```
 
 **Remove container (keeps volume):**
 ```bash
-# Separate instance
 docker rm jenkins-dind-rag-medical
-
-# Replaced instance
-docker rm jenkins-dind
 ```
 
 **Remove container and volume:**
 ```bash
-# Separate instance
 docker rm jenkins-dind-rag-medical
 docker volume rm jenkins_home_rag_medical
-
-# Replaced instance
-docker rm jenkins-dind
-docker volume rm jenkins_home
 ```
 
 ### Port Configuration Summary
 
-| Instance Type | Web Port | Agent Port | Container Name | Volume Name |
-|--------------|----------|------------|----------------|-------------|
-| Separate | 8081 | 50001 | jenkins-dind-rag-medical | jenkins_home_rag_medical |
-| Replaced | 8080 | 50000 | jenkins-dind | jenkins_home |
+| Web Port | Agent Port | Container Name | Volume Name |
+|----------|------------|----------------|-------------|
+| 8081 | 50001 | jenkins-dind-rag-medical | jenkins_home_rag_medical |
 
 ### Troubleshooting
 
@@ -1009,6 +861,6 @@ This Jenkins setup is configured for the RAG Medical Chatbot project with:
 - Docker-in-Docker (DinD) support for building Docker images
 - Python 3 support (install manually as shown in step 6)
 - Trivy for security scanning
-- AWS CLI and plugins for ECR and Elastic Beanstalk deployment
+- AWS CLI and plugins for ECR and Fargate deployment
 
 For more details, see the `custom_jenkins/README.md` file.
