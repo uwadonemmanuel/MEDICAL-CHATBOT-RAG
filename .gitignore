@@ -1,6 +1,6 @@
 venv/
 logs/
-RAG_Medcal_Chatbot.egg-info/
+RAG_Medical_Chatbot.egg-info/
 .env
 Dockerrun.aws.json
 *.key
@@ -9,3 +9,5 @@ secrets/
 *.secret
 .env.local
 .env.*.local
+.gitignore
+.dockerignore
