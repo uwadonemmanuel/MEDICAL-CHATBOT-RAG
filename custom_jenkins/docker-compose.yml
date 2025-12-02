@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  jenkins-dind:
+    image: jenkins-dind:latest
+    container_name: jenkins-dind-rag-medical
+    privileged: true
+    ports:
+      - "8081:8080"  # Changed to 8081 to avoid conflict with existing Jenkins
+      - "50001:50000"  # Changed to 50001 to avoid conflict
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins_home_rag_medical:/var/jenkins_home
+    restart: unless-stopped
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+
+volumes:
+  jenkins_home_rag_medical:
+    name: jenkins_home_rag_medical
+
+
+

@@ -1,0 +1,135 @@
+2025-12-01 08:58:25,708 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.124.255.223:5000
+2025-12-01 08:58:25,708 - INFO - [33mPress CTRL+C to quit[0m
+2025-12-01 09:03:41,629 - INFO - 127.0.0.1 - - [01/Dec/2025 09:03:41] "GET / HTTP/1.1" 200 -
+2025-12-01 09:03:41,803 - INFO - 127.0.0.1 - - [01/Dec/2025 09:03:41] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-12-01 09:03:54,370 - INFO - Loading vector store for context
+2025-12-01 09:03:54,371 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:05:09,375 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:09] "[32mGET /clear HTTP/1.1[0m" 302 -
+2025-12-01 09:05:10,279 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:10] "GET / HTTP/1.1" 200 -
+2025-12-01 09:05:10,280 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:10] "[32mGET /clear HTTP/1.1[0m" 302 -
+2025-12-01 09:05:10,285 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:10] "GET / HTTP/1.1" 200 -
+2025-12-01 09:05:10,968 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:10] "[32mGET /clear HTTP/1.1[0m" 302 -
+2025-12-01 09:05:10,973 - INFO - 127.0.0.1 - - [01/Dec/2025 09:05:10] "GET / HTTP/1.1" 200 -
+2025-12-01 09:05:49,899 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:05:49,900 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:05:57,605 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:05:57,606 - INFO - Loading existing vectorstore...
+2025-12-01 09:05:57,609 - INFO - Loading faiss with AVX2 support.
+2025-12-01 09:05:59,287 - INFO - Loading vector store for context
+2025-12-01 09:05:59,293 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:05:59,309 - INFO - Successfully loaded faiss with AVX2 support.
+2025-12-01 09:05:59,310 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:05:59,311 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:05:59,405 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:05:59,782 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:05:59,788 - INFO - Successfully created the QA chain
+2025-12-01 09:06:01,267 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:06:01,320 - INFO - 127.0.0.1 - - [01/Dec/2025 09:06:01] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:06:05,163 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:06:05,163 - INFO - Loading existing vectorstore...
+2025-12-01 09:06:05,408 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:06:05,569 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:06:05,570 - INFO - Successfully created the QA chain
+2025-12-01 09:06:06,362 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:06:06,370 - INFO - 127.0.0.1 - - [01/Dec/2025 09:06:06] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:06:06,379 - INFO - 127.0.0.1 - - [01/Dec/2025 09:06:06] "GET / HTTP/1.1" 200 -
+2025-12-01 09:07:01,046 - INFO - Loading vector store for context
+2025-12-01 09:07:01,047 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:07:01,056 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:07:01,056 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:07:07,267 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:07:07,267 - INFO - Loading existing vectorstore...
+2025-12-01 09:07:07,380 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:07:07,474 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:07:07,475 - INFO - Successfully created the QA chain
+2025-12-01 09:07:08,545 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:07:08,657 - INFO - 127.0.0.1 - - [01/Dec/2025 09:07:08] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:07:08,724 - INFO - 127.0.0.1 - - [01/Dec/2025 09:07:08] "GET / HTTP/1.1" 200 -
+2025-12-01 09:07:38,125 - INFO - Loading vector store for context
+2025-12-01 09:07:38,125 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:07:38,126 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:07:38,126 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:07:43,178 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:07:43,178 - INFO - Loading existing vectorstore...
+2025-12-01 09:07:43,228 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:07:43,264 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:07:43,265 - INFO - Successfully created the QA chain
+2025-12-01 09:07:44,377 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:07:44,387 - INFO - 127.0.0.1 - - [01/Dec/2025 09:07:44] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:07:44,391 - INFO - 127.0.0.1 - - [01/Dec/2025 09:07:44] "GET / HTTP/1.1" 200 -
+2025-12-01 09:09:29,899 - INFO - Loading vector store for context
+2025-12-01 09:09:29,899 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:09:29,900 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:09:29,900 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:09:36,393 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:09:36,393 - INFO - Loading existing vectorstore...
+2025-12-01 09:09:36,707 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:09:36,759 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:09:36,759 - INFO - Successfully created the QA chain
+2025-12-01 09:09:37,811 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:09:37,841 - INFO - 127.0.0.1 - - [01/Dec/2025 09:09:37] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:09:37,851 - INFO - 127.0.0.1 - - [01/Dec/2025 09:09:37] "GET / HTTP/1.1" 200 -
+2025-12-01 09:10:00,399 - INFO - Loading vector store for context
+2025-12-01 09:10:00,399 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:10:00,410 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:10:00,410 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:10:08,916 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:10:08,917 - INFO - Loading existing vectorstore...
+2025-12-01 09:10:09,097 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:10:09,184 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:10:09,185 - INFO - Successfully created the QA chain
+2025-12-01 09:10:10,034 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:10:10,047 - INFO - 127.0.0.1 - - [01/Dec/2025 09:10:10] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:10:10,057 - INFO - 127.0.0.1 - - [01/Dec/2025 09:10:10] "GET / HTTP/1.1" 200 -
+2025-12-01 09:11:20,904 - INFO - Loading vector store for context
+2025-12-01 09:11:20,907 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:11:20,921 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:11:20,921 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:11:26,656 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:11:26,656 - INFO - Loading existing vectorstore...
+2025-12-01 09:11:26,780 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:11:26,893 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:11:26,894 - INFO - Successfully created the QA chain
+2025-12-01 09:11:27,944 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:11:27,959 - INFO - 127.0.0.1 - - [01/Dec/2025 09:11:27] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:11:27,964 - INFO - 127.0.0.1 - - [01/Dec/2025 09:11:27] "GET / HTTP/1.1" 200 -
+2025-12-01 09:12:24,009 - INFO - Loading vector store for context
+2025-12-01 09:12:24,009 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:12:24,010 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:12:24,010 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:12:29,627 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:12:29,627 - INFO - Loading existing vectorstore...
+2025-12-01 09:12:29,864 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:12:29,915 - INFO - Loading vector store for context
+2025-12-01 09:12:29,915 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:12:29,919 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:12:29,919 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:12:29,937 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:12:29,938 - INFO - Successfully created the QA chain
+2025-12-01 09:12:30,803 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:12:30,812 - INFO - 127.0.0.1 - - [01/Dec/2025 09:12:30] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:12:35,278 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:12:35,278 - INFO - Loading existing vectorstore...
+2025-12-01 09:12:35,329 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:12:35,365 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:12:35,365 - INFO - Successfully created the QA chain
+2025-12-01 09:12:36,348 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:12:36,356 - INFO - 127.0.0.1 - - [01/Dec/2025 09:12:36] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:12:36,361 - INFO - 127.0.0.1 - - [01/Dec/2025 09:12:36] "GET / HTTP/1.1" 200 -
+2025-12-01 09:13:36,276 - INFO - Loading vector store for context
+2025-12-01 09:13:36,277 - INFO - Intializing our Huggingface embedding model
+2025-12-01 09:13:36,278 - INFO - Use pytorch device_name: cpu
+2025-12-01 09:13:36,278 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-12-01 09:13:41,696 - INFO - Huggingface embedding model loaded sucesfully....
+2025-12-01 09:13:41,696 - INFO - Loading existing vectorstore...
+2025-12-01 09:13:41,744 - INFO - Loading LLM from Groq using LLaMA3 model...
+2025-12-01 09:13:41,780 - INFO - LLM loaded successfully from Groq.
+2025-12-01 09:13:41,780 - INFO - Successfully created the QA chain
+2025-12-01 09:13:42,508 - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-01 09:13:42,517 - INFO - 127.0.0.1 - - [01/Dec/2025 09:13:42] "[32mPOST / HTTP/1.1[0m" 302 -
+2025-12-01 09:13:42,521 - INFO - 127.0.0.1 - - [01/Dec/2025 09:13:42] "GET / HTTP/1.1" 200 -
+2025-12-01 09:17:47,911 - INFO - 127.0.0.1 - - [01/Dec/2025 09:17:47] "GET / HTTP/1.1" 200 -
+2025-12-01 09:17:48,093 - INFO - 127.0.0.1 - - [01/Dec/2025 09:17:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
