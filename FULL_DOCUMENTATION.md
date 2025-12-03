@@ -706,23 +706,38 @@ Before starting, ensure you have:
 
 #### Step 5: Access Your Application
 
-1. Once service is running, find your application URL:
+1. **If using a Load Balancer (Recommended):**
    - Go to **"Load balancers"** in EC2 console (or from ECS service details)
    - Click on your load balancer
    - Copy the **DNS name** (e.g., `rag-medical-chatbot-1234567890.us-east-1.elb.amazonaws.com`)
-   - Format: `http://<dns-name>`
+   - **Access using HTTP:** `http://<dns-name>`
+   - ⚠️ **Important:** Use `http://` (not `https://`) unless you've configured HTTPS (see Step 6)
 
-2. **If no load balancer:**
+2. **If no load balancer (Direct Public IP Access):**
    - Get the public IP of your task:
-     - Go to ECS → Clusters → Your cluster → Tasks tab
+     - Go to **ECS** → **Clusters** → Your cluster → **Tasks** tab
      - Click on the running task
      - Find **"Public IP"** in the network section
-   - Access: `http://<public-ip>:5000`
+     - Example: `12.16.60.189`
+   - **Access using HTTP:** `http://<public-ip>:5000`
+   - ⚠️ **Important:** 
+     - Use `http://` (not `https://`) - HTTPS is not supported without a load balancer
+     - Include the port `:5000` in the URL
+     - Example: `http://12.16.60.189:5000`
 
 3. **Test your application:**
    - Open the URL in your browser
+   - ⚠️ **If your browser shows "This site can't provide a secure connection" or "HTTPS not supported":**
+     - Make sure you're using `http://` (not `https://`)
+     - Some browsers auto-redirect to HTTPS - type `http://` explicitly
+     - If browser blocks HTTP, click "Advanced" → "Proceed to site (unsafe)" or use a different browser
    - You should see your RAG Medical Chatbot interface
    - Try asking a medical question to verify it's working
+
+4. **Security Note:**
+   - Direct IP access over HTTP is not secure (data is not encrypted)
+   - For production, use a load balancer with HTTPS (see Step 6)
+   - HTTP is fine for testing, but HTTPS is recommended for production
 
 #### Step 6: Enable HTTPS (Optional but Recommended)
 
@@ -756,6 +771,16 @@ Before starting, ensure you have:
 - Check load balancer DNS name or task public IP
 - Verify security groups allow inbound traffic (port 80/443 or 5000)
 - Check target group health status
+
+**"This site can't provide a secure connection" or "HTTPS not supported" error:**
+- **Cause:** You're trying to access via HTTPS (`https://`) but the application only supports HTTP
+- **Solution:** 
+  - Use `http://` (not `https://`) in the URL
+  - For direct IP access: `http://<public-ip>:5000` (include the port)
+  - For load balancer: `http://<dns-name>` (port 80 is default)
+  - If browser auto-redirects to HTTPS, type `http://` explicitly in the address bar
+  - Some browsers may show a warning - click "Advanced" → "Proceed" to continue
+- **Note:** HTTPS requires a load balancer with SSL certificate (see Step 6). Direct IP access only supports HTTP.
 
 **Image pull errors:**
 - Verify ECR image URI is correct

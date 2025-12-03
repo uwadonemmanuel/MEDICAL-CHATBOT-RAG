@@ -64,84 +64,84 @@ pipeline {
             }
         }
 
-//         stage('Deploy to AWS Fargate') {
-//             steps {
-//                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
-//                     script {
-//                         def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-//                         def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
-//                         def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
-//                         def clusterName = "rag-medical-chatbot-cluster"
-//                         def serviceName = "rag-medical-chatbot-service"
-//                         def taskFamily = "rag-medical-chatbot-task"
+        stage('Deploy to AWS Fargate') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+                    script {
+                        def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
+                        def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
+                        def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
+                        def clusterName = "rag-medical-chatbot-cluster"
+                        def serviceName = "rag-medical-chatbot-service"
+                        def taskFamily = "rag-medical-chatbot-task"
 
-//                         echo "Deploying to AWS Fargate..."
-//                         echo "Cluster: ${clusterName}"
-//                         echo "Service: ${serviceName}"
-//                         echo "Task Family: ${taskFamily}"
-//                         echo "Image: ${imageFullTag}"
+                        echo "Deploying to AWS Fargate..."
+                        echo "Cluster: ${clusterName}"
+                        echo "Service: ${serviceName}"
+                        echo "Task Family: ${taskFamily}"
+                        echo "Image: ${imageFullTag}"
 
-//                         // Register new task definition with updated image using Python
-//                         sh """
-//                         # Get the current task definition and update image using Python
-//                         python3 << 'PYTHON_SCRIPT'
-// import json
-// import subprocess
-// import sys
+                        // Register new task definition with updated image using Python
+                        sh """
+                        # Get the current task definition and update image using Python
+                        python3 << 'PYTHON_SCRIPT'
+import json
+import subprocess
+import sys
 
-// task_family = '${taskFamily}'
-// region = '${AWS_REGION}'
-// new_image = '${imageFullTag}'
+task_family = '${taskFamily}'
+region = '${AWS_REGION}'
+new_image = '${imageFullTag}'
 
-// # Get current task definition
-// result = subprocess.run(
-//     ['aws', 'ecs', 'describe-task-definition', '--task-definition', task_family, '--region', region, '--query', 'taskDefinition', '--output', 'json'],
-//     capture_output=True,
-//     text=True
-// )
+# Get current task definition
+result = subprocess.run(
+    ['aws', 'ecs', 'describe-task-definition', '--task-definition', task_family, '--region', region, '--query', 'taskDefinition', '--output', 'json'],
+    capture_output=True,
+    text=True
+)
 
-// if result.returncode != 0:
-//     print(f"Error getting task definition: {result.stderr}", file=sys.stderr)
-//     sys.exit(1)
+if result.returncode != 0:
+    print(f"Error getting task definition: {result.stderr}", file=sys.stderr)
+    sys.exit(1)
 
-// task_def = json.loads(result.stdout)
+task_def = json.loads(result.stdout)
 
-// # Update image in container definitions
-// task_def['containerDefinitions'][0]['image'] = new_image
+# Update image in container definitions
+task_def['containerDefinitions'][0]['image'] = new_image
 
-// # Remove fields that shouldn't be in new task definition
-// fields_to_remove = ['taskDefinitionArn', 'revision', 'status', 'requiresAttributes', 'compatibilities', 'registeredAt', 'registeredBy']
-// for field in fields_to_remove:
-//     task_def.pop(field, None)
+# Remove fields that shouldn't be in new task definition
+fields_to_remove = ['taskDefinitionArn', 'revision', 'status', 'requiresAttributes', 'compatibilities', 'registeredAt', 'registeredBy']
+for field in fields_to_remove:
+    task_def.pop(field, None)
 
-// # Register new task definition
-// register_result = subprocess.run(
-//     ['aws', 'ecs', 'register-task-definition', '--cli-input-json', json.dumps(task_def), '--region', region],
-//     capture_output=True,
-//     text=True
-// )
+# Register new task definition
+register_result = subprocess.run(
+    ['aws', 'ecs', 'register-task-definition', '--cli-input-json', json.dumps(task_def), '--region', region],
+    capture_output=True,
+    text=True
+)
 
-// if register_result.returncode != 0:
-//     print(f"Error registering task definition: {register_result.stderr}", file=sys.stderr)
-//     sys.exit(1)
+if register_result.returncode != 0:
+    print(f"Error registering task definition: {register_result.stderr}", file=sys.stderr)
+    sys.exit(1)
 
-// print("Task definition registered successfully")
-// PYTHON_SCRIPT
+print("Task definition registered successfully")
+PYTHON_SCRIPT
 
-//                         # Update service to use new task definition (will use latest revision)
-//                         aws ecs update-service \
-//                             --cluster ${clusterName} \
-//                             --service ${serviceName} \
-//                             --task-definition ${taskFamily} \
-//                             --force-new-deployment \
-//                             --region ${AWS_REGION}
+                        # Update service to use new task definition (will use latest revision)
+                        aws ecs update-service \
+                            --cluster ${clusterName} \
+                            --service ${serviceName} \
+                            --task-definition ${taskFamily} \
+                            --force-new-deployment \
+                            --region ${AWS_REGION}
 
-//                         echo "Deployment initiated. Fargate service will pull the new image from ECR."
-//                         echo "Monitor deployment status in AWS Console: ECS → Clusters → ${clusterName} → Services → ${serviceName}"
-//                         """
-//                     }
-//                 }
-//             }
-//         }
+                        echo "Deployment initiated. Fargate service will pull the new image from ECR."
+                        echo "Monitor deployment status in AWS Console: ECS → Clusters → ${clusterName} → Services → ${serviceName}"
+                        """
+                    }
+                }
+            }
+        }
     }
 }
