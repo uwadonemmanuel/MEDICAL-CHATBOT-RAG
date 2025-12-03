@@ -27,77 +27,36 @@ pipeline {
                         def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
                         def cacheImage = "${ecrUrl}:cache"
 
-                        // Create persistent pip cache directory in Jenkins workspace
+                        // Build with BuildKit for cache mounts and layer caching
+                        // BuildKit cache mounts are defined in Dockerfile and work without Jenkins cache plugin
                         sh """
-                        mkdir -p \${WORKSPACE}/.pip-cache
+                        export DOCKER_API_VERSION=1.43
+                        
+                        # Login to ECR
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
+                        
+                        # Pull cache image if it exists (for layer caching)
+                        docker pull ${cacheImage} || echo 'Cache image not found, will create new'
+                        
+                        # Build with BuildKit for cache mounts and layer caching
+                        # BuildKit cache mounts are defined in Dockerfile
+                        DOCKER_BUILDKIT=1 docker build \
+                            --build-arg BUILDKIT_INLINE_CACHE=1 \
+                            --cache-from ${cacheImage} \
+                            -t ${env.ECR_REPO}:${IMAGE_TAG} \
+                            -t ${cacheImage} \
+                            .
+                        
+                        # Scan image
+                        trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
+                        
+                        # Tag and push main image
+                        docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${imageFullTag}
+                        docker push ${imageFullTag}
+                        
+                        # Push cache image for next build
+                        docker push ${cacheImage} || echo 'Failed to push cache image, continuing...'
                         """
-
-                        // Use Jenkins cache to persist pip cache between builds
-                        // Note: Requires Pipeline Cache Plugin (install via Manage Jenkins > Plugins)
-                        try {
-                            cache(maxCacheSize: 500, caches: [
-                                [$class: 'ArbitraryFileCache', path: '.pip-cache']
-                            ]) {
-                                sh """
-                                export DOCKER_API_VERSION=1.43
-                                
-                                # Login to ECR
-                                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
-                                
-                                # Pull cache image if it exists (for layer caching)
-                                docker pull ${cacheImage} || echo 'Cache image not found, will create new'
-                                
-                                # Build with BuildKit for cache mounts and layer caching
-                                # BuildKit cache mounts are defined in Dockerfile
-                                DOCKER_BUILDKIT=1 docker build \
-                                    --build-arg BUILDKIT_INLINE_CACHE=1 \
-                                    --cache-from ${cacheImage} \
-                                    -t ${env.ECR_REPO}:${IMAGE_TAG} \
-                                    -t ${cacheImage} \
-                                    .
-                                
-                                # Scan image
-                                trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
-                                
-                                # Tag and push main image
-                                docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${imageFullTag}
-                                docker push ${imageFullTag}
-                                
-                                # Push cache image for next build
-                                docker push ${cacheImage} || echo 'Failed to push cache image, continuing...'
-                                """
-                            }
-                        } catch (Exception e) {
-                            // Fallback if cache plugin not available - still use BuildKit cache mounts
-                            echo "Cache plugin not available, using BuildKit cache mounts only: ${e.message}"
-                            sh """
-                            export DOCKER_API_VERSION=1.43
-                            
-                            # Login to ECR
-                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
-                            
-                            # Pull cache image if it exists
-                            docker pull ${cacheImage} || echo 'Cache image not found'
-                            
-                            # Build with BuildKit (cache mounts work without Jenkins cache plugin)
-                            DOCKER_BUILDKIT=1 docker build \
-                                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                                --cache-from ${cacheImage} \
-                                -t ${env.ECR_REPO}:${IMAGE_TAG} \
-                                -t ${cacheImage} \
-                                .
-                            
-                            # Scan image
-                            trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
-                            
-                            # Tag and push main image
-                            docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${imageFullTag}
-                            docker push ${imageFullTag}
-                            
-                            # Push cache image
-                            docker push ${cacheImage} || echo 'Failed to push cache image'
-                            """
-                        }
 
                         archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
                     }
