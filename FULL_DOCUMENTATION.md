@@ -613,7 +613,8 @@ Before starting, ensure you have:
 1. In the ECS dashboard, click **"Task definitions"** in the left sidebar
 2. Click **"Create new task definition"**
 3. **Task definition family:**
-   - Enter: `rag-medical-chatbot-task` (or your preferred name)
+   - Enter: `medical-chatbot-rag-task` (or your preferred name)
+   - ⚠️ **Important:** Use this exact name to match the Jenkinsfile configuration
 
 4. **Launch type:**
    - Select **"Fargate"**
@@ -661,8 +662,8 @@ Before starting, ensure you have:
 4. **Service configuration:**
    - **Launch type:** `Fargate`
    - **Task definition:**
-     - **Family:** Select `rag-medical-chatbot-task`
-     - **Revision:** Select `1` (latest)
+     - **Family:** Select `medical-chatbot-rag-task`
+     - **Revision:** Select the latest revision (e.g., `2` if that's your latest)
    - **Service name:** `rag-medical-chatbot-service`
    - **Number of tasks:** `1` (for testing) or `2` (for high availability)
 
@@ -795,6 +796,16 @@ Before starting, ensure you have:
 - Use CloudWatch to monitor costs
 - Consider using Spot Fargate (if available in your region)
 
+**Jenkins pipeline error: "Task definition does not exist" or "Unable to describe task definition":**
+- **Cause:** The task definition hasn't been created yet in AWS ECS
+- **Solution:** 
+  1. Go to AWS Console → ECS → Task definitions
+  2. Click "Create new task definition"
+  3. Follow Step 3 in the documentation above to create the task definition
+  4. Make sure the task definition family name matches: `medical-chatbot-rag-task`
+  5. After creating, run the Jenkins pipeline again
+- **Note:** The task definition and service must be created manually first (one-time setup). After that, Jenkins can automatically update them with new images.
+
 #### Cost Optimization Tips
 
 1. **Use appropriate task size:**
@@ -827,14 +838,37 @@ Your RAG Medical Chatbot is now live on AWS Fargate! 🚀
 
 ### 🧪 Run Jenkins Pipeline
 
-- Go to **Jenkins Dashboard** → Select your pipeline job
-- Click **Build Now**
+**⚠️ Important Prerequisites:**
+Before running the Jenkins pipeline, you must have:
+1. ✅ Created the ECS cluster (`rag-medical-chatbot-cluster`)
+2. ✅ Created the task definition (`medical-chatbot-rag-task`) - See Step 3 above
+3. ✅ Created the ECS service (`rag-medical-chatbot-service`) - See Step 4 above
+
+The Jenkins pipeline will:
+- Update the task definition with the new image
+- Trigger a new deployment in the existing service
+
+**If you haven't created the task definition and service yet:**
+- The pipeline will fail with a clear error message
+- Follow the error message instructions to create them manually
+- Then run the pipeline again
+
+**To run the pipeline:**
+1. Go to **Jenkins Dashboard** → Select your pipeline job
+2. Click **Build Now**
 
 If all stages succeed (Checkout → Build → Trivy Scan → Push to ECR → Deploy to Fargate):
 
 🎉 **CI/CD Deployment to AWS Fargate is complete!**
 
 ✅ Your app is now live and running on AWS 🚀
+
+**What the pipeline does:**
+- Builds a new Docker image
+- Scans it for vulnerabilities (Trivy)
+- Pushes to ECR
+- Updates the Fargate task definition with the new image
+- Triggers a new deployment in your Fargate service
 
 ---
 
