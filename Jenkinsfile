@@ -71,8 +71,8 @@ pipeline {
                         def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
                         def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
                         def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
-                        def clusterName = "rag-medical-chatbot-cluster"
-                        def serviceName = "rag-medical-chatbot-service"
+                        def clusterName = "medical-chatbot-rag-cluster"
+                        def serviceName = "medical-chatbot-rag-task-service-qq0useo9"
                         def taskFamily = "medical-chatbot-rag-task"
 
                         echo "Deploying to AWS Fargate..."

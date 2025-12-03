@@ -591,7 +591,8 @@ Before starting, ensure you have:
 
 1. Click **"Create Cluster"** button
 2. **Cluster name:**
-   - Enter: `rag-medical-chatbot-cluster` (or your preferred name)
+   - Enter: `medical-chatbot-rag-cluster` (or your preferred name)
+   - ⚠️ **Important:** Use this exact name to match the Jenkinsfile configuration
    - Must be unique within your AWS account
    - Use lowercase letters, numbers, and hyphens only
 
@@ -655,7 +656,7 @@ Before starting, ensure you have:
 
 #### Step 4: Create Service
 
-1. Go back to your cluster (`rag-medical-chatbot-cluster`)
+1. Go back to your cluster (`medical-chatbot-rag-cluster`)
 2. Click on the cluster name
 3. Click **"Create"** button (or go to **"Services"** tab → **"Create"**)
 
@@ -664,7 +665,8 @@ Before starting, ensure you have:
    - **Task definition:**
      - **Family:** Select `medical-chatbot-rag-task`
      - **Revision:** Select the latest revision (e.g., `2` if that's your latest)
-   - **Service name:** `rag-medical-chatbot-service`
+   - **Service name:** `medical-chatbot-rag-task-service-qq0useo9` (or your preferred name)
+     - ⚠️ **Note:** AWS may add a unique suffix to your service name. If so, update the Jenkinsfile with your actual service name.
    - **Number of tasks:** `1` (for testing) or `2` (for high availability)
 
 5. **Networking:**
@@ -672,7 +674,13 @@ Before starting, ensure you have:
    - **Subnets:** Select at least 2 subnets (for high availability)
    - **Security groups:** 
      - Select existing or create new
-     - Must allow inbound traffic on port `5000` (or port you configure in load balancer)
+     - ⚠️ **CRITICAL:** Must allow inbound traffic on port `5000` (or port you configure in load balancer)
+     - **Inbound rule to add:**
+       - **Type:** `Custom TCP`
+       - **Port:** `5000`
+       - **Source:** `0.0.0.0/0` (for testing) or your specific IP (for production security)
+       - **Description:** `Allow HTTP access to Flask app`
+     - If you don't add this rule, you won't be able to access your application!
    - **Auto-assign public IP:** `ENABLED` (required for Fargate tasks to pull images from ECR)
 
 6. **Load balancing (optional but recommended):**
@@ -806,6 +814,43 @@ Before starting, ensure you have:
   5. After creating, run the Jenkins pipeline again
 - **Note:** The task definition and service must be created manually first (one-time setup). After that, Jenkins can automatically update them with new images.
 
+**Jenkins pipeline warning: "Service does not exist in cluster":**
+- **Cause:** The ECS service hasn't been created yet, or the service name in Jenkinsfile doesn't match your actual service name
+- **Solution:**
+  1. Go to AWS Console → ECS → Clusters → Your cluster (`medical-chatbot-rag-cluster`)
+  2. Click on the cluster name
+  3. Go to the **"Services"** tab
+  4. Check if a service already exists - if it does, note the exact service name
+  5. If no service exists, click **"Create"** button and follow Step 4 in the documentation above
+  6. **Important:** Update the Jenkinsfile with your actual service name if it's different from `medical-chatbot-rag-task-service-qq0useo9`
+  7. After creating/verifying the service, run the Jenkins pipeline again
+- **Note:** The task definition was updated successfully, but the service needs to exist and match the name in Jenkinsfile to deploy.
+
+**Site cannot be reached (http://<ip>:5000):**
+- **Possible causes and solutions:**
+  1. **Security group not allowing inbound traffic:**
+     - Go to EC2 Console → Security Groups
+     - Find the security group attached to your Fargate task
+     - Add inbound rule: Type `Custom TCP`, Port `5000`, Source `0.0.0.0/0` (or your IP for security)
+     - Save the rule
+  2. **Task is not running:**
+     - Go to ECS → Clusters → Your cluster → Tasks tab
+     - Check if there are any running tasks
+     - If no tasks, check the service status and events
+     - Look for errors in CloudWatch Logs
+  3. **Public IP changed:**
+     - Fargate tasks get new IPs when restarted
+     - Get the current public IP from: ECS → Clusters → Tasks → Click on task → Network section
+  4. **Application not listening on port 5000:**
+     - Check CloudWatch Logs for application errors
+     - Verify the Flask app is configured to listen on `0.0.0.0:5000` (not `127.0.0.1:5000`)
+  5. **Service not created yet:**
+     - If you see "Service does not exist" in Jenkins, create the service first (see above)
+  6. **Check task health:**
+     - Go to ECS → Clusters → Your cluster → Services → Your service
+     - Check if tasks are in "Running" state and "Healthy"
+     - If unhealthy, check CloudWatch Logs for errors
+
 #### Cost Optimization Tips
 
 1. **Use appropriate task size:**
@@ -840,9 +885,10 @@ Your RAG Medical Chatbot is now live on AWS Fargate! 🚀
 
 **⚠️ Important Prerequisites:**
 Before running the Jenkins pipeline, you must have:
-1. ✅ Created the ECS cluster (`rag-medical-chatbot-cluster`)
+1. ✅ Created the ECS cluster (`medical-chatbot-rag-cluster`)
 2. ✅ Created the task definition (`medical-chatbot-rag-task`) - See Step 3 above
-3. ✅ Created the ECS service (`rag-medical-chatbot-service`) - See Step 4 above
+3. ✅ Created the ECS service (`medical-chatbot-rag-task-service-qq0useo9` or your actual service name) - See Step 4 above
+   - ⚠️ **Note:** If your service name is different, update the `serviceName` variable in the Jenkinsfile
 
 The Jenkins pipeline will:
 - Update the task definition with the new image
