@@ -530,7 +530,25 @@ If this succeeds, Docker permissions are fixed!
 **Error:** `Cannot connect to the Docker daemon`
 - **Solution:** Verify Docker Desktop is running on the host
 
-> **Note:** The Dockerfile already includes Docker installation and adds the Jenkins user to the docker group. However, if you're mounting the Docker socket from the host (`-v /var/run/docker.sock:/var/run/docker.sock`), you may need to fix permissions as shown above.
+**Error:** `client version 1.52 is too new. Maximum supported API version is 1.43`
+- **Solution:** This happens when the Docker client version is newer than what the host Docker daemon supports. Fix by:
+  1. **If using docker-compose:** The `docker-compose.yml` already sets `DOCKER_API_VERSION=1.43` in the environment
+  2. **If using docker run:** Add `-e DOCKER_API_VERSION=1.43` to your docker run command (already included in `run-jenkins.sh`)
+  3. **If container is already running:** Set it manually:
+     ```bash
+     docker exec -u root -it jenkins-dind-rag-medical bash
+     echo 'export DOCKER_API_VERSION=1.43' >> /etc/profile
+     echo 'export DOCKER_API_VERSION=1.43' >> ~/.bashrc
+     exit
+     docker restart jenkins-dind-rag-medical
+     ```
+  4. **Verify it's set:**
+     ```bash
+     docker exec jenkins-dind-rag-medical env | grep DOCKER_API_VERSION
+     ```
+     Should show: `DOCKER_API_VERSION=1.43`
+
+> **Note:** The Dockerfile already includes Docker installation and adds the Jenkins user to the docker group. However, if you're mounting the Docker socket from the host (`-v /var/run/docker.sock:/var/run/docker.sock`), you may need to fix permissions as shown above. The `DOCKER_API_VERSION=1.43` environment variable is set in the Dockerfile and docker-compose.yml to ensure compatibility with host Docker daemons.
 
 ## ==> 4. 🚀 Deployment to AWS Fargate
 

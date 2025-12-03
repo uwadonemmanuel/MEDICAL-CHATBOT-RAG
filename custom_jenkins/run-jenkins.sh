@@ -65,6 +65,7 @@ docker run -d \
   -p $AGENT_PORT:50000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $VOLUME_NAME:/var/jenkins_home \
+  -e DOCKER_API_VERSION=1.43 \
   $IMAGE_NAME
 
 echo -e "${GREEN}Jenkins container started successfully!${NC}"
